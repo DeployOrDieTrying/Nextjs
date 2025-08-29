@@ -4,12 +4,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Article } from '@/lib/types';
 import { AlertCircle, Search, Newspaper } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 interface ArticleSectionProps {
   onIframeOpen: (url: string, title: string) => void;
@@ -53,7 +53,7 @@ export default function ArticleSection({ onIframeOpen }: ArticleSectionProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchArticles = async () => {
@@ -83,7 +83,7 @@ export default function ArticleSection({ onIframeOpen }: ArticleSectionProps) {
     const filteredArticles = useMemo(() => {
         return articlesData.filter(article => {
             const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
+            const matchesCategory = selectedCategory === null || article.category === selectedCategory;
             return matchesSearch && matchesCategory;
         });
     }, [articlesData, searchTerm, selectedCategory]);
@@ -99,7 +99,7 @@ export default function ArticleSection({ onIframeOpen }: ArticleSectionProps) {
             <h1 className="mb-8 text-center text-4xl font-bold font-headline text-foreground">Articles</h1>
             
             <Card className="mb-8 p-4 md:p-6">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col gap-4">
                     <div className="relative flex-grow">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
@@ -110,17 +110,25 @@ export default function ArticleSection({ onIframeOpen }: ArticleSectionProps) {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="w-full md:w-[200px]">
-                            <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            {categories.map(category => (
-                                <SelectItem key={category} value={category}>{category}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                     <div className="flex items-center justify-center gap-2 flex-wrap">
+                         <Button
+                            variant={selectedCategory === null ? 'default' : 'outline'}
+                            onClick={() => setSelectedCategory(null)}
+                            className="rounded-full"
+                        >
+                            All
+                        </Button>
+                        {categories.map(category => (
+                            <Button
+                                key={category}
+                                variant={selectedCategory === category ? 'default' : 'outline'}
+                                onClick={() => setSelectedCategory(category)}
+                                className="rounded-full"
+                            >
+                                {category}
+                            </Button>
+                        ))}
+                    </div>
                 </div>
             </Card>
 

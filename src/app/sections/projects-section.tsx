@@ -17,18 +17,11 @@ interface ProjectsSectionProps {
 
 const PROJECTS_URL = 'https://docs.google.com/spreadsheets/d/13ZV6BXtXKp9aQCKc0OHQoLFCRrif32zvx4khFc4bR9w/export?format=csv';
 
-const categoryDescriptions: { [key in ProjectCategory & string]: string } = {
+const categoryDescriptions: { [key in string]: string } = {
   Alpha: 'Alpha is the upcoming and under development projects.',
   Beta: 'Beta is the working projects, but they may have some bugs or issues.',
   Gamma: 'Gamma is for projects that are ready to use.',
 };
-
-const filterCategories: { label: string; value: ProjectCategory }[] = [
-  { label: 'All', value: null },
-  { label: 'Alpha', value: 'Alpha' },
-  { label: 'Beta', value: 'Beta' },
-  { label: 'Gamma', value: 'Gamma' },
-];
 
 export default function ProjectsSection({ onIframeOpen, initialCategory }: ProjectsSectionProps) {
   const [allProjects, setAllProjects] = useState<Project[]>([]);
@@ -36,6 +29,11 @@ export default function ProjectsSection({ onIframeOpen, initialCategory }: Proje
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<ProjectCategory>(initialCategory);
+  
+  const categories = useMemo(() => 
+      [...new Set(allProjects.map(project => project.category))].filter(Boolean) as ProjectCategory[],
+      [allProjects]
+  );
 
   useEffect(() => {
     setActiveCategory(initialCategory);
@@ -81,7 +79,9 @@ export default function ProjectsSection({ onIframeOpen, initialCategory }: Proje
     return projects;
   }, [allProjects, searchTerm, activeCategory]);
 
-  const description = activeCategory ? categoryDescriptions[activeCategory] : 'Browse all available projects.';
+  const description = activeCategory && categoryDescriptions[activeCategory] 
+    ? categoryDescriptions[activeCategory] 
+    : 'Browse all available projects.';
 
   return (
     <div className="py-8 px-4 animate-fadeIn">
@@ -91,7 +91,7 @@ export default function ProjectsSection({ onIframeOpen, initialCategory }: Proje
       <p className="mb-8 text-center text-lg text-muted-foreground max-w-2xl mx-auto">{description}</p>
       
       <Card className="p-6 md:p-8">
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col gap-4 mb-8">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -104,15 +104,23 @@ export default function ProjectsSection({ onIframeOpen, initialCategory }: Proje
               aria-label="Search projects"
             />
           </div>
-          <div className="flex items-center justify-center gap-2">
-            {filterCategories.map(cat => (
-              <Button
-                key={cat.label}
-                variant={activeCategory === cat.value ? 'default' : 'outline'}
-                onClick={() => setActiveCategory(cat.value)}
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <Button
+                key="all-projects"
+                variant={activeCategory === null ? 'default' : 'outline'}
+                onClick={() => setActiveCategory(null)}
                 className="rounded-full"
               >
-                {cat.label}
+                All
+              </Button>
+            {categories.map(cat => (
+              <Button
+                key={cat}
+                variant={activeCategory === cat ? 'default' : 'outline'}
+                onClick={() => setActiveCategory(cat)}
+                className="rounded-full"
+              >
+                {cat}
               </Button>
             ))}
           </div>
