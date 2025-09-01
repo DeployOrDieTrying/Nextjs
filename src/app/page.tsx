@@ -34,6 +34,14 @@ export default function Home() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [news, setNews] = useState<NewsItem[]>([]);
 
+  useEffect(() => {
+    const hash = window.location.hash.substring(1);
+    const validSections: Section[] = ['home', 'projects', 'contact', 'settings', 'deals', 'games', 'media', 'courses', 'article'];
+    if (validSections.includes(hash as Section)) {
+      setActiveSection(hash as Section);
+    }
+  }, []);
+
   const fetchNews = useCallback(async () => {
     try {
       const res = await fetch(ANNOUNCEMENTS_URL);
@@ -87,7 +95,7 @@ export default function Home() {
       window.open(url, '_blank', 'noopener,noreferrer');
       return;
     } else if (url.includes('spotify.com')) {
-      embedUrl = url.replace('spotify.com', 'spotify.com/embed');
+      embedUrl = url.replace('open.spotify.com', 'open.spotify.com/embed');
     }
     
     if (embedUrl.includes("youtube.com/watch")) {
